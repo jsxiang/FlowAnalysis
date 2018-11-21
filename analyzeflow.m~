@@ -315,7 +315,7 @@ for i=ind;
         mutxt=sprintf('\\mu = %1.2f',analyzed.muALL(i));
 %         sigmatxt=sprintf('\\sigma = %1.2f',analyzed.sigmaALL(i));
         sigmatxt=sprintf('\\sigma = %1.2f',analyzed.sigmaALL(i));
-        text(4.55,2.2,mutxt,'fontsize',20);
+        text(4.5,2.2,mutxt,'fontsize',20);
         text(4.6,1.9,sigmatxt,'fontsize',20);
         
         cellcount=length(vertchannel);

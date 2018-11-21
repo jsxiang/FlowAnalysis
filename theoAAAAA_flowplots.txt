@@ -1,0 +1,2 @@
+TheoAAAAA-1+lig_72h	BFP	mCherry	./fcsdata/HEK293T.0060.fcs	good
+TheoAAAAA-1-lig_72h	BFP	mCherry	./fcsdata/HEK293T.0050.fcs	good

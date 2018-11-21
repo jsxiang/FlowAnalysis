@@ -1,8 +1,11 @@
 
 analyzed1=analyzeflow('inputfilename','input1mM.txt','plotfit2D',0,'thresh2D',[2.7 2.4],'omit',true);
 analyzed2=analyzeflow('inputfilename','input5mM.txt','plotfit2D',0,'thresh2D',[2.7 2.4],'omit',true);
+%%
+analyzedflowplot=analyzeflow('inputfilename','theoAAAAA_flowplots.txt','plotfit2D',1,'dimplot',[1,1],'thresh2D',[2.7 2.4],'omit',true);
 
-%%%%
+%%
+
 analyzed(1)=analyzed1;
 analyzed(2)=analyzed2;
 %%
