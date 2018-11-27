@@ -1,4 +1,4 @@
-function [figuredata,figh]=getVYBdata(analyzedALL,expligandconc,ligandname,time,alpha,normsTRSVctl,setYScaletoLog,domedian,plotindividualsamples,switches,timecourse,timeassay);
+function [figuredata,figh,grouped]=getVYBdata(analyzedALL,expligandconc,ligandname,time,alpha,normsTRSVctl,setYScaletoLog,domedian,plotindividualsamples,switches,timecourse,timeassay)
 
 addpath ~/Documents/robot/Matlab-Utilities/
 addpath ~/Documents/MATLAB/flowanalysis
@@ -230,39 +230,17 @@ else
 
 end
 
-
-
-% sort lowest basal first
-
-[Y,I]=sortrows(mus,1);
-xlabelnames=uniquenames(I);
-fold=fold(I);
-
-
-m=zeros(size(mus));
-mm=m;
-s=zeros(size(sigs));
-
 if normsTRSVctl
-    sci=find(~cellfun('isempty',regexp(xlabelnames,'sTRSVctl')));
-strsvctlmus=repmat(Y(sci,:),length(Y(:,1)),1);
-Y=Y-strsvctlmus+2;
+    sci=find(~cellfun('isempty',regexp(uniquenames,'sTRSVctl')));
+strsvctlmus=repmat(mus(sci,:),length(mus(:,1)),1);
+mus=mus-strsvctlmus+2;
 
 else
-strsvctlmus=zeros(length(Y(:,1)),2);
-Y=Y-strsvctlmus+2;
+strsvctlmus=zeros(length(mus(:,1)),2);
+mus=mus-strsvctlmus+2;
 
 end
 
-fold=Y(:,2)-Y(:,1);
-
-for i=1:length(Y(1,:))
-    in=~(isnan(Y(:,i)) & isnan(sigs(:,i)));
-    m(in,i)=Y(in,i);
-    s(in,i)=sigs(in,i);
-    mm(in,i)=10.^Y(in,i);
-%     xlabelnames=uniquenames(in);
-end
 
 % test for significance
 Hs=[];
@@ -277,56 +255,71 @@ sigfold=[];
 
 numsamps=[];
 
+if normsTRSVctl
+sci=~cellfun('isempty',regexp(uniquenames,'sTRSVctl'));
+strsvctlmus_minus=mean(grouped(k).time(find(sci)).noligmu');    
+strsvctlmus_plus=mean(grouped(k).time(find(sci)).wligmu'); 
+strsvctlsigs_minus=std(grouped(k).time(find(sci)).noligmu');    
+strsvctlsigs_plus=std(grouped(k).time(find(sci)).wligmu'); 
+
+figuredata(k).sTRSVctl_id=sci;  
+figuredata(k).strsvctlmus_mean=[strsvctlmus_minus strsvctlmus_plus];
+figuredata(k).strsvctlmus_std=[strsvctlsigs_minus strsvctlsigs_plus];
+else
+figuredata(k).sTRSVctl_id=nan;  
+figuredata(k).strsvctlmus_mean=0;
+figuredata(k).strsvctlmus_std=0;
+end
+
+
 for i=1:length(grouped(k).time)
     
-    [H,P]=ttest2(grouped(k).time(i).noligmu-strsvctlmus(1,1),grouped(k).time(i).wligmu-strsvctlmus(1,2),'alpha',alpha);
+    [H,P]=ttest2(grouped(k).time(i).noligmu-figuredata(k).strsvctlmus_mean(1),grouped(k).time(i).wligmu-figuredata(k).strsvctlmus_mean(2),'alpha',alpha);
     Hs(end+1)=H;
     Ps(end+1)=P;
     
-    meannorm_minus(i)=mean(grouped(k).time(i).noligmu-strsvctlmus(1,1));
-    signorm_minus(i)=sqrt(std(grouped(k).time(i).noligmu).^2+std(strsvctlmus(1,1)).^2);
-    meannorm_plus(i)=mean(grouped(k).time(i).wligmu-strsvctlmus(1,2));
-    signorm_plus(i)=std(grouped(k).time(i).wligmu-strsvctlmus(1,2));
-    signorm_plus(i)=sqrt(std(grouped(k).time(i).wligmu).^2+std(strsvctlmus(1,2)).^2);
-    meanfold(i)=mean(10.^((grouped(k).time(i).wligmu-mean(strsvctlmus(1,2)))-(grouped(k).time(i).noligmu-mean(strsvctlmus(1,1)))));
-    sigfold(i)=std(10.^((grouped(k).time(i).wligmu-mean(strsvctlmus(1,2)))-(grouped(k).time(i).noligmu-mean(strsvctlmus(1,1)))));
+    meannorm_minus(i)=mean(grouped(k).time(i).noligmu-figuredata(k).strsvctlmus_mean(1));
+    signorm_minus(i)=sqrt(std(grouped(k).time(i).noligmu).^2+figuredata(k).strsvctlmus_std(1).^2);
+    meannorm_plus(i)=mean(grouped(k).time(i).wligmu-figuredata(k).strsvctlmus_mean(2));
+%     signorm_plus(i)=std(grouped(k).time(i).wligmu-strsvctlmus(1,2));
+    signorm_plus(i)=sqrt(std(grouped(k).time(i).wligmu).^2+figuredata(k).strsvctlmus_std(2).^2);
+    meanfold(i)=mean(10.^((grouped(k).time(i).wligmu-(figuredata(k).strsvctlmus_mean(2)))-(grouped(k).time(i).noligmu-(figuredata(k).strsvctlmus_mean(1)))));
+    sigfold(i)=std(10.^((grouped(k).time(i).wligmu-(figuredata(k).strsvctlmus_mean(2)))-(grouped(k).time(i).noligmu-(figuredata(k).strsvctlmus_mean(1)))));
     numsamps(i)=length(grouped(k).time(i).noligmu);
 
 end
 
-m=[meannorm_minus(I)' meannorm_plus(I)']+2;
 figuredata(k).condition=expligandconc{k};
-figuredata(k).meannorm_minus=meannorm_minus(I);
-figuredata(k).signorm_minus=signorm_minus(I);
-figuredata(k).meannorm_plus=meannorm_plus(I);
-figuredata(k).signorm_plus=signorm_plus(I);
+figuredata(k).meannorm_minus=meannorm_minus;
+figuredata(k).signorm_minus=signorm_minus;
+figuredata(k).meannorm_plus=meannorm_plus;
+figuredata(k).signorm_plus=signorm_plus;
 % figuredata(k).meanfold=10.^fold;
-figuredata(k).meanfold=meanfold(I);
+figuredata(k).meanfold=meanfold;
 figuredata(k).sigfold=sqrt(figuredata(k).signorm_plus.^2+figuredata(k).signorm_minus.^2);
-figuredata(k).samplenames=uniquenames(I);
-figuredata(k).numsamps=numsamps(I);
+figuredata(k).samplenames=uniquenames;
+figuredata(k).numsamps=numsamps;
 
 
+numsamps=[numsamps' numsamps'];
 
-numsamps=[numsamps(I)' numsamps(I)'];
-
+s=[figuredata(k).signorm_minus' figuredata(k).signorm_plus'];
+m=[figuredata(k).meannorm_minus' figuredata(k).meannorm_plus'];
 if setYScaletoLog
-    
-    s=[signorm_minus(I)' signorm_plus(I)'];
     err=[];
     err(:,:,1)=10.^(m)-10.^(m-s);
     err(:,:,2)=10.^(m+s)-10.^(m);
 else
-    s=[signorm_minus(I)' signorm_plus(I)'];
     err=[];
     err(:,:,1)=(10.^(m)-10.^(m-s))./sqrt(numsamps);
     err(:,:,2)=(10.^(m+s)-10.^(m))./sqrt(numsamps);
 end
     
 mm=10.^m;
+[Y,I]=sort(mm(:,1));
+xlabelnames=uniquenames(I);
 
-
-[h hErrorbar]=barwitherr(err,mm);
+[h hErrorbar]=barwitherr(err(I,:,:),mm(I,:));
 
 
 set(h,'linewidth',2)
@@ -341,33 +334,32 @@ pval=Ps(I);
 
 L = get(gca,'XLim');
 % xlabelnames=uniquenames(in);
-xlabelnames=uniquenames;
 if length(xlabelnames)>10
-set(gca,'xticklabel',{'',xlabelnames{I},'',''})
+set(gca,'xticklabel',{'',xlabelnames{:},'',''})
 NumTicks = length(xlabelnames)+3; 
     
 elseif  length(xlabelnames)>8
-set(gca,'xticklabel',{'',xlabelnames{I},''})
+set(gca,'xticklabel',{'',xlabelnames{:},''})
 NumTicks = length(xlabelnames)+2; 
     
 elseif length(xlabelnames)>5
-set(gca,'xticklabel',{'',xlabelnames{I},''})
+set(gca,'xticklabel',{'',xlabelnames{:},''})
 NumTicks = length(xlabelnames)+2; 
 
 elseif length(xlabelnames)==5 % for zeatin
-set(gca,'xticklabel',{'',xlabelnames{I(1)},'',xlabelnames{I(2)},'',...
-                      xlabelnames{I(3)},'',xlabelnames{I(4)},'',...
-                      xlabelnames{I(5)},''})
+set(gca,'xticklabel',{'',xlabelnames{(1)},'',xlabelnames{(2)},'',...
+                      xlabelnames{(3)},'',xlabelnames{(4)},'',...
+                      xlabelnames{(5)},''})
 NumTicks = length(xlabelnames)+6; 
 
 
 elseif length(xlabelnames)==4 % for zeatin
-set(gca,'xticklabel',{'',xlabelnames{I(1)},'',xlabelnames{I(2)},'',...
-                      xlabelnames{I(3)},'',xlabelnames{I(4)},''})
+set(gca,'xticklabel',{'',xlabelnames{(1)},'',xlabelnames{(2)},'',...
+                      xlabelnames{(3)},'',xlabelnames{(4)},''})
 NumTicks = length(xlabelnames)+5; 
 
 else
-set(gca,'xticklabel',{xlabelnames{I}})
+set(gca,'xticklabel',{xlabelnames{:}})
 NumTicks = length(xlabelnames); 
 end
 set(gca,'TickLabelInterpreter','none')
@@ -389,26 +381,26 @@ end
 
 % legend('0 mM 6R,S-folinic acid', '5 mM 6R,S-folinic acid','location','best')
 if switches
-f=find(~isnan(fold));
-time={};
-for i=1:length(f)
-    time{end+1}=sprintf('%0.1f',10.^fold(f(i)));
+foldval={};
+for i=1:length(figuredata(k).meanfold)
+    foldval{end+1}=sprintf('%0.1f',figuredata(k).meanfold(i));
 end
 
 if normsTRSVctl && ~setYScaletoLog
-txtheight=10.^(m(:,2)')+7.5;
-axis([0 length(uniquenames)+1 0 max(YL)])
+txtheight=10.^(m(I,2)')+7.5;
+axis([0 length(xlabelnames)+1 0 max(YL)])
 elseif setYScaletoLog
-txtheight=10.^(m(:,2)')*1.5;
-axis([0 length(uniquenames)+1 min(min(10.^m))*0.9 max(YL)*2.8])
+txtheight=10.^(m(I,2)')*1.5;
+axis([0 length(xlabelnames)+1 min(min(10.^m))*0.9 max(YL)*2.8])
 else
-txtheight=10.^(m(:,2)')*1.5;
-axis([0 length(uniquenames)+1 min(min(10.^m))*0.9 max(YL)*1.5])
+txtheight=10.^(m(i,2)')*1.5;
+axis([0 length(xlabelnames)+1 min(min(10.^m))*0.9 max(YL)*1.5])
 
 end
 
-txtwidth=(1:length(uniquenames))-0.35;
-text(txtwidth(f),txtheight(f),time,'fontsize',18)
+txtwidth=(1:length(xlabelnames))-0.35;
+text(txtwidth,txtheight,foldval(I),'fontsize',18)
+
 hval(pval<(alpha/10) & pval>(alpha/100))=2;
 hval(pval<(alpha/100) & pval>(alpha/1000))=3;
 hval(pval<(alpha/1000))=4;
@@ -421,25 +413,25 @@ for j=1:length(hval)
     if normsTRSVctl && ~setYScaletoLog
         astoffset=3;
        if hval(j)==1
-           text(txtwidth(f(j)),txtheight(f(j))+astoffset,' *','fontsize',28)
+           text(txtwidth((j)),txtheight((j))+astoffset,' *','fontsize',28)
        elseif hval(j)==2
-           text(txtwidth(f(j))+0.05,txtheight(f(j))+astoffset,'**','fontsize',28)
+           text(txtwidth((j))+0.05,txtheight((j))+astoffset,'**','fontsize',28)
        elseif hval(j)==3
-           text(txtwidth(f(j))-0.1,txtheight(f(j))+astoffset,'***','fontsize',28)
+           text(txtwidth((j))-0.1,txtheight((j))+astoffset,'***','fontsize',28)
        elseif hval(j)==4
-           text(txtwidth(f(j))-0.2,txtheight(f(j))+astoffset,'****','fontsize',28)
+           text(txtwidth((j))-0.2,txtheight((j))+astoffset,'****','fontsize',28)
        end
    
     else
         astoffset=1.3;
        if hval(j)==1
-           text(txtwidth(f(j)),txtheight(f(j))*astoffset,' *','fontsize',28)
+           text(txtwidth((j)),txtheight((j))*astoffset,' *','fontsize',28)
        elseif hval(j)==2
-           text(txtwidth(f(j))+0.05,txtheight(f(j))*astoffset,'**','fontsize',28)
+           text(txtwidth((j))+0.05,txtheight((j))*astoffset,'**','fontsize',28)
        elseif hval(j)==3
-           text(txtwidth(f(j))-0.1,txtheight(f(j))*astoffset,'***','fontsize',28)
+           text(txtwidth((j))-0.1,txtheight((j))*astoffset,'***','fontsize',28)
        elseif hval(j)==4
-           text(txtwidth(f(j))-0.2,txtheight(f(j))*astoffset,'****','fontsize',28)
+           text(txtwidth((j))-0.2,txtheight((j))*astoffset,'****','fontsize',28)
        end        
     end
 end

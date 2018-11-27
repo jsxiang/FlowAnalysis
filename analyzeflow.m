@@ -104,7 +104,7 @@ for i=1:length(analyzed.samplenames)
         fsca=fcsdat(:,4);
         ssca=fcsdat(:,2);
         ssch=fcsdat(:,3);
-        viablecells=fsca>10^3.5 & fsca<10^4.5 & ssca>10.^4.6 & ssca<10.^5;
+        viablecells=fsca>10^3.5 & fsca<10^4.6 & ssca>10.^4.6 & ssca<10.^5.05;
         singlets=(fsch>(0.65*fsca))&viablecells;
 
         setfig('plot viable');clf
@@ -136,7 +136,7 @@ for i=1:length(analyzed.samplenames)
 %         set(gca,'Yscale','log')
 %         set(gca,'XScale','log')
         axis([2.7 5.4 2.7 5.4])
-%         singlets=(fsch>(0.35*fsca))&viablecells;  %only for Y42
+        singlets=(fsch>(0.45*fsca))&viablecells;  %only for Y42 and T86 cdG
         
         hold on
 %         plot(fsca(singlets),fsch(singlets),'r.')
@@ -160,7 +160,7 @@ for i=1:length(analyzed.samplenames)
         GFP=fcsdat(singlets,10);
         
         % remove saturated
-        nonsat=(h<2.62e5)&(v<2.62e5)&(GFP<2.62e5);
+        nonsat=(h<5.4e5)&(v<5.4e5)&(GFP<5.4e5);
         
         data(i).name=analyzed.samplenames{i};
         data(i).ssc=ssc(nonsat);
@@ -279,16 +279,16 @@ for i=ind;
 %         setfig('twocolorplot');
 %         subplot(dimensionplotx,dimensionploty,i)
         hold on
-        if length(horzchannel)>args.numcells
-            plotdatx=log10(horzchannel(1:args.numcells));
-        else
+%         if length(horzchannel)>args.numcells
+%             plotdatx=log10(horzchannel(1:args.numcells));
+%         else
             plotdatx=log10(horzchannel);
-        end
-        if length(vertchannel)>args.numcells
-            plotdaty=log10(vertchannel(1:args.numcells));
-        else
+%         end
+%         if length(vertchannel)>args.numcells
+%             plotdaty=log10(vertchannel(1:args.numcells));
+%         else
             plotdaty=log10(vertchannel);
-        end
+%         end
         
         hold on
         plot(plotdatx,plotdaty,'.','color',[0.6 0.6 0.6])
