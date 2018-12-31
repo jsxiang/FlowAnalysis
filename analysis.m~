@@ -2,7 +2,7 @@
 analyzed1=analyzeflow('inputfilename','input1mM.txt','plotfit2D',1,'thresh2D',[2.7 2.4],'omit',true,'muhisto',true,'returndata',true);
 analyzed2=analyzeflow('inputfilename','input5mM.txt','plotfit2D',1,'thresh2D',[2.7 2.4],'omit',true,'muhisto',true,'returndata',true);
 %%
-analyzedflowplot=analyzeflow('inputfilename','theoAAAAA_flowplots.txt','plotfit2D',1,'thresh2D',[2.7 2.4],'omit',true,'muhisto',true);
+analyzedflowplot=analyzeflow('inputfilename','theoAAAAA_flowplots.txt','plotfit2D',1,,'thresh2D',[2.7 2.4],'omit',true,'muhisto',true);
 
 %%
 
@@ -76,7 +76,6 @@ figure(1);clf
 hold on
 falpha=0.2;
 
-
 kstestpval=[];
 ksteststat=[];
 for j=1:length(combinedsw)
@@ -90,9 +89,9 @@ figh{j}=h;
 
 figure(1)
 hold on
-colormat2={[0.6 0.6 0.6],[0.7 0.2 0.2],[0.8 0.8 0.8],[0.8 0.8 0.8],[0.8 0.8 0.8]};
+colormat2={[0.6 0.6 0.6],[0.7 0.2 0.2],colormat{1},colormat{1},[0.8 0.8 0.8],[0.8 0.8 0.8],[0.8 0.8 0.8]};
 % for j=1:length(nameh)
-    if j==1
+    if l==1 && j==1
         lstyle='--';
 %         falpha=0.4;
     else
@@ -116,17 +115,7 @@ xlabel('mCherry/BFP')
 ylabel('Frequency')
 set(gca,'Fontsize',26)
 set(gca,'linewidth',2)
-legend('0 mM Theophylline','1 mM Theophylline','location','northwest')
-
-L = get(gca,'XLim');
-% xlabelnames=uniquenames(in);
-xlim([-1,3.2])
-set(gca,'XTick',-1:1:3)
-set(gca,'xticklabel',{'0.1','1','10','100','1000'})
-% NumTicks = length(xlabelnames)+5;
-
-% set(gca,'XTick',linspace(L(1),L(2),NumTicks))
-
+legend('0 mM Theophylline','1 mM Theophylline')
 
 
 
